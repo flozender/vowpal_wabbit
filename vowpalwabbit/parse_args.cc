@@ -608,6 +608,7 @@ void parse_feature_tweaks(
   std::vector<std::string> interactions;
   std::vector<std::string> ignores;
   std::vector<std::string> ignore_linears;
+  std::string ignore_tag;
   std::vector<std::string> keeps;
   std::vector<std::string> redefines;
 
@@ -629,6 +630,8 @@ void parse_feature_tweaks(
       .add(make_option("ignore_linear", ignore_linears)
                .keep()
                .help("ignore namespaces beginning with character <arg> for linear terms only"))
+      .add(make_option("ignore_tag", ignore_tag)
+               .help("ignores the entered tag"))
       .add(make_option("keep", keeps).keep().help("keep namespaces beginning with character <arg>"))
       .add(make_option("redefine", redefines)
                .keep()
@@ -868,8 +871,11 @@ void parse_feature_tweaks(
     all.ignore[i] = false;
     all.ignore_linear[i] = false;
   }
+  all.ignore_tag = "";
   all.ignore_some = false;
   all.ignore_some_linear = false;
+  all.ignore_some_tag = false;
+  all.ignored_examples = 0;
 
   if (options.was_supplied("ignore"))
   {
@@ -909,6 +915,14 @@ void parse_feature_tweaks(
 
       *(all.trace_message) << endl;
     }
+  }
+
+  if (options.was_supplied("ignore_tag"))
+  {
+    all.ignore_some_tag = true;
+    all.ignore_tag = ignore_tag;
+    if (!all.logger.quiet)
+      *(all.trace_message) << "Ignoring examples with tag: " + ignore_tag << endl;
   }
 
   if (options.was_supplied("keep"))
@@ -1927,7 +1941,7 @@ void finish(vw& all, bool delete_all)
     *(all.trace_message) << std::fixed;
     *(all.trace_message) << endl << "finished run";
     if (all.current_pass == 0 || all.current_pass == 1)
-      *(all.trace_message) << endl << "number of examples = " << all.sd->example_number;
+      *(all.trace_message) << endl << "number of examples = " << all.sd->example_number - all.ignored_examples;
     else
     {
       *(all.trace_message) << endl << "number of examples per pass = " << all.sd->example_number / all.current_pass;

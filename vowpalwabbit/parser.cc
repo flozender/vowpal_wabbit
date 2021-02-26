@@ -428,6 +428,7 @@ void enable_sources(vw& all, bool quiet, size_t passes, input_options& input_opt
       memcpy(sd, all.sd, sizeof(shared_data));
       free(all.sd);
       all.sd = sd;
+      all.ignored_examples = 0;
       all.example_parser->_shared_data = sd;
 
       // create children
@@ -680,6 +681,16 @@ void setup_example(vw& all, example* ae)
         i--;
       }
 
+  if (all.ignore_some_tag){
+    std::string tag;
+    for (char c : ae->tag)
+      tag = tag + c;
+    if (tag == all.ignore_tag){
+      ae->weight = 0;
+      all.ignored_examples++;
+    }
+  }
+
   if (all.skip_gram_transformer != nullptr) { all.skip_gram_transformer->generate_grams(ae); }
 
   if (all.add_constant)  // add constant feature
@@ -696,8 +707,10 @@ void setup_example(vw& all, example* ae)
   ae->total_sum_feat_sq = 0;
   for (const features& fs : *ae)
   {
-    ae->num_features += fs.size();
-    ae->total_sum_feat_sq += fs.sum_feat_sq;
+    if(ae->weight > 0){
+      ae->num_features += fs.size();
+      ae->total_sum_feat_sq += fs.sum_feat_sq;
+    }
   }
 
   if (all.interactions.quadratics_wildcard_expansion)

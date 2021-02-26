@@ -438,6 +438,9 @@ public:
   std::array<bool, NUM_NAMESPACES> ignore;  // a set of namespaces to ignore
   bool ignore_some_linear;
   std::array<bool, NUM_NAMESPACES> ignore_linear;  // a set of namespaces to ignore for linear
+  bool ignore_some_tag;
+  std::string ignore_tag;  // a tag to ignore
+  int ignored_examples;
 
   bool redefine_some;                                  // --redefine param was used
   std::array<unsigned char, NUM_NAMESPACES> redefine;  // keeps new chars for namespaces
